@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { DraftItemWithPreview, ToastMessage } from "../types";
+import { PageShell } from "./ui/page-shell";
+import { TopBar } from "./ui/top-bar";
+import { IconButton } from "./ui/icon-button";
+import { Button } from "./ui/button";
 
 type SetupViewProps = {
   items: DraftItemWithPreview[];
@@ -108,8 +112,6 @@ export function SetupView({
 
   const canStart = !isBusy;
   const toastStyle = message ? getToastStyle(message) : null;
-  const headerIconButtonClass =
-    "inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-40";
 
   const openUploadPicker = () => {
     const input = uploadInputRef.current;
@@ -123,7 +125,7 @@ export function SetupView({
   };
 
   return (
-    <section className="relative flex h-full w-full flex-col bg-gray-50">
+    <PageShell>
       {message ? (
         <div className="pointer-events-none absolute left-4 right-4 top-4 z-40 flex justify-center">
           <div
@@ -152,46 +154,50 @@ export function SetupView({
         </div>
       ) : null}
 
-      <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b border-slate-200 bg-white/80 px-4 backdrop-blur-md">
-        <button
-          type="button"
-          onClick={openUploadPicker}
-          className={`${headerIconButtonClass} -ml-2`}
-          aria-label="上传图片"
-          disabled={isBusy}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="h-5 w-5"
-          >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="17 8 12 3 7 8" />
-            <line x1="12" y1="3" x2="12" y2="15" />
-          </svg>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setMenuOpen(true)}
-          className={`${headerIconButtonClass} -mr-2`}
-          aria-label="更多操作"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="h-5 w-5"
-          >
-            <circle cx="12" cy="12" r="1" />
-            <circle cx="19" cy="12" r="1" />
-            <circle cx="5" cy="12" r="1" />
-          </svg>
-        </button>
-      </header>
+      <TopBar
+        sticky
+        leftSlot={
+          <IconButton
+            onClick={openUploadPicker}
+            disabled={isBusy}
+            label="上传图片"
+            className="-ml-2 hover:text-indigo-600"
+            icon={
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="h-5 w-5"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            }
+          />
+        }
+        rightSlot={
+          <IconButton
+            onClick={() => setMenuOpen(true)}
+            label="更多操作"
+            className="-mr-2 hover:text-indigo-600"
+            icon={
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="h-5 w-5"
+              >
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="19" cy="12" r="1" />
+                <circle cx="5" cy="12" r="1" />
+              </svg>
+            }
+          />
+        }
+      />
 
       <div className="flex-1 space-y-4 overflow-y-auto p-4 pb-32">
         <div className="grid grid-cols-2 gap-3">
@@ -220,25 +226,26 @@ export function SetupView({
                     </div>
                   )}
 
-                  <button
-                    type="button"
+                  <IconButton
+                    variant="surface"
                     onClick={async () => {
                       await onRemove(item.id);
                     }}
-                    className="absolute right-1 top-1 rounded-full bg-white/90 p-2 text-slate-400 shadow-sm backdrop-blur-sm transition-all hover:scale-110 hover:text-red-500"
-                    aria-label="删除题目"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="h-3.5 w-3.5"
-                    >
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
+                    label="删除题目"
+                    className="absolute right-1 top-1 text-slate-400 hover:text-red-500"
+                    icon={
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        className="h-3.5 w-3.5"
+                      >
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    }
+                  />
                 </div>
 
                 <input
@@ -257,14 +264,14 @@ export function SetupView({
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-gray-50 via-gray-50 to-transparent p-6">
-        <button
-          type="button"
+        <Button
           onClick={onStart}
           disabled={!canStart}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-black py-3 font-semibold text-white transition-all active:scale-[0.98] hover:bg-slate-900 disabled:cursor-not-allowed disabled:bg-slate-300"
+          fullWidth
+          className="bg-black text-white hover:bg-slate-900"
         >
           <span>开始游戏</span>
-        </button>
+        </Button>
       </div>
 
       {menuOpen ? (
@@ -278,29 +285,29 @@ export function SetupView({
 
           <div className="absolute inset-x-0 bottom-0 z-50 rounded-t-2xl bg-white p-4">
             <div className="space-y-2">
-              <button
-                type="button"
-                className="w-full rounded-xl bg-slate-100 px-4 py-3 text-base font-medium text-slate-700 transition-colors hover:bg-slate-200"
+              <Button
+                variant="secondary"
+                fullWidth
                 onClick={() => {
                   importInputRef.current?.click();
                   setMenuOpen(false);
                 }}
               >
                 导入 JSON
-              </button>
-              <button
-                type="button"
-                className="w-full rounded-xl bg-slate-100 px-4 py-3 text-base font-medium text-slate-700 transition-colors hover:bg-slate-200"
+              </Button>
+              <Button
+                variant="secondary"
+                fullWidth
                 onClick={async () => {
                   setMenuOpen(false);
                   await onExport();
                 }}
               >
                 导出 JSON
-              </button>
-              <button
-                type="button"
-                className="w-full rounded-xl bg-red-50 px-4 py-3 text-base font-medium text-red-600 transition-colors hover:bg-red-100"
+              </Button>
+              <Button
+                variant="danger"
+                fullWidth
                 onClick={async () => {
                   setMenuOpen(false);
                   if (window.confirm("确认清空所有题目与图片吗？")) {
@@ -309,7 +316,7 @@ export function SetupView({
                 }}
               >
                 清空数据
-              </button>
+              </Button>
             </div>
           </div>
         </>
@@ -340,6 +347,6 @@ export function SetupView({
           event.currentTarget.value = "";
         }}
       />
-    </section>
+    </PageShell>
   );
 }
