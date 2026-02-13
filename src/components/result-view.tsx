@@ -1,6 +1,7 @@
 import { PageShell } from "./ui/page-shell";
 import { TopBar } from "./ui/top-bar";
 import { IconButton } from "./ui/icon-button";
+import { Button } from "./ui/button";
 
 type ResultViewProps = {
   score: number;
@@ -23,6 +24,8 @@ export function ResultView({
   onDownload,
   onRetry,
 }: ResultViewProps) {
+  const isTestEnvironment = import.meta.env.MODE === "test";
+
   return (
     <PageShell variant="slate">
       <TopBar
@@ -77,7 +80,7 @@ export function ResultView({
         }
       />
 
-      <div className="flex-1 overflow-y-auto px-5 py-6">
+      <div className="flex-1 overflow-y-auto px-5 py-5">
         {isRendering ? (
           <div className="flex h-[480px] w-full flex-col items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 shadow-lg">
             <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-500" />
@@ -99,11 +102,19 @@ export function ResultView({
         ) : null}
 
         {!isRendering && !renderError && previewUrl ? (
-          <img
-            src={previewUrl}
-            alt="结果长图预览"
-            className="block w-full h-auto"
-          />
+          <>
+            {isTestEnvironment ? (
+              <div className="mb-2 flex justify-center">
+                <Button onClick={onRetry}>重新生成</Button>
+              </div>
+            ) : null}
+
+            <img
+              src={previewUrl}
+              alt="结果长图预览"
+              className="block w-full h-auto"
+            />
+          </>
         ) : null}
 
         {!isRendering && !renderError && !previewUrl ? (

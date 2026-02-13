@@ -191,17 +191,21 @@ export function GameView({
           </label>
           <textarea
             value={currentReason}
-            rows={2}
+            rows={1}
             onChange={(event) => onReasonChange(event.target.value)}
             placeholder="（选填）"
-            className="w-full resize-none rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+            className="w-full resize-none rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-700 outline-none transition-all focus:border-slate-900 focus:ring-2 focus:ring-slate-900/15"
           />
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col pb-2">
           {allSelected ? (
             <div className="flex min-h-0 flex-1 items-center">
-              <Button onClick={onSubmit} fullWidth className="text-base font-bold">
+              <Button
+                onClick={onSubmit}
+                fullWidth
+                className="text-base font-bold"
+              >
                 查看结果
               </Button>
             </div>
@@ -210,14 +214,14 @@ export function GameView({
               <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-400">
                 名称
               </label>
-              <div className="flex min-h-0 flex-1 flex-wrap content-start gap-2 overflow-y-auto rounded-xl bg-white/60 p-2">
+              <div className="flex min-h-0 flex-1 flex-wrap content-start gap-2 overflow-y-auto rounded-xl p-2">
                 {availableNames.length > 0 ? (
                   availableNames.map((name) => (
                     <button
                       key={name}
                       type="button"
                       onClick={() => onSelectName(name)}
-                      className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 active:scale-95"
+                      className="rounded-lg border border-slate-300 bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-500 hover:bg-slate-200 hover:text-slate-900 active:scale-95"
                     >
                       {name}
                     </button>
