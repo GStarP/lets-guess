@@ -4,16 +4,17 @@ import type { ResultEntry } from '../types'
 const CANVAS_WIDTH = 1080
 const CANVAS_PADDING = 32
 const GRID_GAP = 16
+const REASON_ROW_GAP = 0
 const IMAGE_RADIUS = 10
-const NAME_PILL_HEIGHT = 36
-const NAME_PILL_MARGIN_TOP = 12
-const NAME_FONT_SIZE = 24
-const NAME_LINE_HEIGHT = 24
-const NAME_BASELINE_Y_OFFSET = 26
-const REASON_MARGIN_TOP = 8
-const REASON_LINE_HEIGHT = 22
-const REASON_MAX_LINES = 2
-const FOOTER_HEIGHT = 60
+const NAME_PILL_HEIGHT = 64
+const NAME_PILL_MARGIN_TOP = 10
+const NAME_FONT_SIZE = 44
+const NAME_LINE_HEIGHT = 44
+const NAME_BASELINE_Y_OFFSET = 46
+const REASON_MARGIN_TOP = 20
+const REASON_LINE_HEIGHT = 36
+const REASON_MAX_LINES = 1
+const FOOTER_HEIGHT = 32
 
 function drawRoundedRect(
   context: CanvasRenderingContext2D,
@@ -148,7 +149,8 @@ export async function renderResultCanvas(
 
   for (let rowIndex = 0; rowIndex < rows; rowIndex += 1) {
     rowTops.push(nextTop)
-    nextTop += rowHeights[rowIndex] + GRID_GAP
+    const gap = rowHasReason[rowIndex] ? REASON_ROW_GAP : GRID_GAP
+    nextTop += rowHeights[rowIndex] + gap
   }
 
   const contentHeight = rows > 0 ? nextTop - CANVAS_PADDING - GRID_GAP : 0
@@ -218,7 +220,7 @@ export async function renderResultCanvas(
 
     const reasonY = pillY + NAME_PILL_HEIGHT + REASON_MARGIN_TOP
     context.fillStyle = '#6b7280'
-    context.font = '400 16px Outfit'
+    context.font = '400 30px Outfit'
 
     if (entry.reason && entry.reason.trim()) {
       drawWrappedText(
@@ -233,13 +235,6 @@ export async function renderResultCanvas(
       )
     }
   }
-
-  // Footer
-  context.fillStyle = '#9ca3af'
-  context.font = '500 22px Outfit'
-  context.textAlign = 'center'
-  context.fillText('lets-guess.pages.dev', canvas.width / 2, canvas.height - 24)
-  context.textAlign = 'start'
 
   return canvas
 }

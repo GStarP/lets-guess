@@ -202,7 +202,7 @@ export function SetupView({
       <div className="flex-1 space-y-4 overflow-y-auto p-4 pb-32">
         <div className="grid grid-cols-2 gap-3">
           {items.length === 0 ? (
-            <div className="col-span-full py-10 text-center text-sm italic text-slate-400">
+            <div className="col-span-full py-10 text-center text-sm text-slate-400">
               暂无题目，请先上传图片
             </div>
           ) : null}
