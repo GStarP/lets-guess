@@ -60,3 +60,10 @@ export type ResultEntry = {
   reason: string
   isCorrect: boolean
 }
+
+export type R2Credentials = {
+  endpoint: string
+  bucket: string
+  accessKeyId: string
+  secretAccessKey: string
+}

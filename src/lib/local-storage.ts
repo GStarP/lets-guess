@@ -1,5 +1,5 @@
-import { LOCAL_STORAGE_KEY, SCHEMA_VERSION } from './constants'
-import type { PuzzleDraftDocument, PuzzleDraftItem } from '../types'
+import { LOCAL_STORAGE_KEY, R2_CREDENTIALS_KEY, SCHEMA_VERSION } from './constants'
+import type { PuzzleDraftDocument, PuzzleDraftItem, R2Credentials } from '../types'
 
 function isValidDraftItem(item: unknown): item is PuzzleDraftItem {
   if (!item || typeof item !== 'object') {
@@ -66,4 +66,41 @@ export function saveDraftToLocalStorage(items: PuzzleDraftItem[]): void {
 
 export function clearDraftFromLocalStorage(): void {
   localStorage.removeItem(LOCAL_STORAGE_KEY)
+}
+
+export function loadR2CredentialsFromLocalStorage(): R2Credentials | null {
+  const raw = localStorage.getItem(R2_CREDENTIALS_KEY)
+  if (!raw) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    if (!parsed || typeof parsed !== 'object') {
+      return null
+    }
+
+    const c = parsed as Record<string, unknown>
+    if (
+      typeof c.endpoint !== 'string' ||
+      typeof c.bucket !== 'string' ||
+      typeof c.accessKeyId !== 'string' ||
+      typeof c.secretAccessKey !== 'string'
+    ) {
+      return null
+    }
+
+    return {
+      endpoint: c.endpoint,
+      bucket: c.bucket,
+      accessKeyId: c.accessKeyId,
+      secretAccessKey: c.secretAccessKey,
+    }
+  } catch {
+    return null
+  }
+}
+
+export function saveR2CredentialsToLocalStorage(credentials: R2Credentials): void {
+  localStorage.setItem(R2_CREDENTIALS_KEY, JSON.stringify(credentials))
 }

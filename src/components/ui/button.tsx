@@ -17,7 +17,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseClass =
-    "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50";
+    "inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50";
 
   const variantClasses = {
     primary: "bg-black text-white hover:bg-slate-900 disabled:bg-slate-300",
@@ -29,7 +29,8 @@ export function Button({
 
   const widthClass = fullWidth ? "w-full" : "";
   // Default padding if not overridden
-  const paddingClass = className.includes("p-") || className.includes("px-") ? "" : "px-4 py-3";
+  const paddingClass =
+    className.includes("p-") || className.includes("px-") ? "" : "px-4 py-3";
 
   return (
     <button

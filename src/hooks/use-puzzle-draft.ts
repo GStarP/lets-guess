@@ -23,7 +23,9 @@ type UsePuzzleDraftResult = {
   removeItem: (id: string) => Promise<void>
   clearAll: () => Promise<void>
   importFromJson: (file: File | null) => Promise<void>
+  importFromJsonString: (jsonText: string) => Promise<void>
   exportToJson: () => Promise<void>
+  buildExportJsonString: () => Promise<string>
   clearMessage: () => void
   pushMessage: (nextMessage: ToastMessage) => void
 }
@@ -321,6 +323,53 @@ export function usePuzzleDraft(): UsePuzzleDraftResult {
     [replacePreviewMap],
   )
 
+  const importFromJsonString = useCallback(
+    async (jsonText: string) => {
+      setIsBusy(true)
+
+      try {
+        const parsedItems = parseImportDocument(jsonText)
+
+        const nextItems: PuzzleDraftItem[] = []
+        const nextPreviewMap: Record<string, string> = {}
+
+        await clearImages()
+
+        for (const item of parsedItems) {
+          const dimensions = await readImageDimensions(item.blob)
+
+          await putImage({
+            id: item.id,
+            blob: item.blob,
+            mimeType: item.blob.type,
+            width: dimensions.width,
+            height: dimensions.height,
+            createdAt: Date.now(),
+          })
+
+          nextItems.push({
+            id: item.id,
+            imageId: item.id,
+            correctName: item.correctName,
+          })
+
+          nextPreviewMap[item.id] = URL.createObjectURL(item.blob)
+        }
+
+        setItems(nextItems)
+        replacePreviewMap(nextPreviewMap)
+        setMessage({ type: 'success', text: `导入成功，共 ${nextItems.length} 张图片` })
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : '未知错误'
+        setMessage({ type: 'error', text: `导入失败：${detail}` })
+        throw error
+      } finally {
+        setIsBusy(false)
+      }
+    },
+    [replacePreviewMap],
+  )
+
   const exportToJson = useCallback(async () => {
     if (items.length === 0) {
       setMessage({ type: 'info', text: '当前没有可导出的题目' })
@@ -357,6 +406,30 @@ export function usePuzzleDraft(): UsePuzzleDraftResult {
     setIsBusy(false)
   }, [items])
 
+  const buildExportJsonString = useCallback(async (): Promise<string> => {
+    if (items.length === 0) {
+      throw new Error('当前没有可分享的题目')
+    }
+
+    const imageDataByImageId: Record<string, { dataUrl: string; mimeType: string }> = {}
+
+    for (const item of items) {
+      const image = await getImage(item.imageId)
+
+      if (!image) {
+        throw new Error('存在丢失图片，请先重新上传后再分享')
+      }
+
+      imageDataByImageId[item.imageId] = {
+        dataUrl: await blobToDataUrl(image.blob),
+        mimeType: image.mimeType,
+      }
+    }
+
+    const payload = buildExportDocument(items, imageDataByImageId)
+    return JSON.stringify(payload)
+  }, [items])
+
   const clearMessage = useCallback(() => {
     setMessage(null)
   }, [])
@@ -388,7 +461,9 @@ export function usePuzzleDraft(): UsePuzzleDraftResult {
     removeItem,
     clearAll,
     importFromJson,
+    importFromJsonString,
     exportToJson,
+    buildExportJsonString,
     clearMessage,
     pushMessage,
   }

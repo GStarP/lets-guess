@@ -194,7 +194,7 @@ export function GameView({
             rows={1}
             onChange={(event) => onReasonChange(event.target.value)}
             placeholder="（选填）"
-            className="w-full resize-none rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-700 outline-none transition-all focus:border-slate-900 focus:ring-2 focus:ring-slate-900/15"
+            className="w-full resize-none rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-700 outline-none transition-all focus:border-slate-900 focus:ring-2 focus:ring-slate-900/15"
           />
         </div>
 

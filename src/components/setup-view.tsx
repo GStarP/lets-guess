@@ -4,6 +4,7 @@ import { PageShell } from "./ui/page-shell";
 import { TopBar } from "./ui/top-bar";
 import { IconButton } from "./ui/icon-button";
 import { Button } from "./ui/button";
+import { ShareDialog } from "./share-dialog";
 
 type SetupViewProps = {
   items: DraftItemWithPreview[];
@@ -17,6 +18,9 @@ type SetupViewProps = {
   onRemove: (id: string) => Promise<void>;
   onStart: () => void;
   onDismissMessage: () => void;
+  onShareSuccess: (message: string) => void;
+  onShareError: (message: string) => void;
+  buildExportJsonString: () => Promise<string>;
 };
 
 function getToastStyle(message: ToastMessage): {
@@ -91,8 +95,12 @@ export function SetupView({
   onRemove,
   onStart,
   onDismissMessage,
+  onShareSuccess,
+  onShareError,
+  buildExportJsonString,
 }: SetupViewProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
@@ -306,6 +314,16 @@ export function SetupView({
                 导出 JSON
               </Button>
               <Button
+                variant="secondary"
+                fullWidth
+                onClick={() => {
+                  setMenuOpen(false);
+                  setShareOpen(true);
+                }}
+              >
+                分享题目
+              </Button>
+              <Button
                 variant="danger"
                 fullWidth
                 onClick={async () => {
@@ -347,6 +365,20 @@ export function SetupView({
           event.currentTarget.value = "";
         }}
       />
+
+      {shareOpen ? (
+        <ShareDialog
+          exportJson={buildExportJsonString}
+          onClose={() => setShareOpen(false)}
+          onSuccess={(msg) => {
+            setShareOpen(false);
+            onShareSuccess(msg);
+          }}
+          onError={(msg) => {
+            onShareError(msg);
+          }}
+        />
+      ) : null}
     </PageShell>
   );
 }

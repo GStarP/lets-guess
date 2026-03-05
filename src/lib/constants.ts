@@ -11,3 +11,5 @@ export const DB_VERSION = 1
 export const IMAGE_STORE_NAME = 'images'
 
 export const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
+
+export const R2_CREDENTIALS_KEY = 'lets-guess:r2-credentials:v1'
