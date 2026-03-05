@@ -9,6 +9,10 @@ import { normalizeName } from "./lib/name-utils";
 import { renderResultCanvas } from "./lib/result-canvas";
 import { triggerDownload } from "./lib/image-utils";
 import { extractShareUrlFromHash } from "./lib/r2-sharing";
+import {
+  loadSetupModeFromLocalStorage,
+  saveSetupModeToLocalStorage,
+} from "./lib/local-storage";
 import type { AppView, ResultEntry } from "./types";
 
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
@@ -26,6 +30,9 @@ function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 
 function App() {
   const [view, setView] = useState<AppView>("setup");
+  const [setupMode, setSetupMode] = useState<"play" | "edit">(
+    () => loadSetupModeFromLocalStorage() ?? "edit",
+  );
   const [resultBlob, setResultBlob] = useState<Blob | null>(null);
   const [resultPreviewUrl, setResultPreviewUrl] = useState<string | null>(null);
   const [isRenderingResult, setIsRenderingResult] = useState(false);
@@ -43,7 +50,6 @@ function App() {
     updateItemName,
     removeItem,
     clearAll,
-    importFromJson,
     importFromJsonString,
     exportToJson,
     buildExportJsonString,
@@ -83,6 +89,16 @@ function App() {
     },
     [resultPreviewUrl],
   );
+
+  useEffect(() => {
+    saveSetupModeToLocalStorage(setupMode);
+  }, [setupMode]);
+
+  useEffect(() => {
+    if (items.length === 0 && setupMode !== "edit") {
+      setSetupMode("edit");
+    }
+  }, [items.length, setupMode]);
 
   // 页面初始化时检测 URL hash 中的分享参数
   useEffect(() => {
@@ -136,7 +152,7 @@ function App() {
     setIsRenderingResult(false);
   }, [replaceResultPreview, resultEntries, session]);
 
-  const handleStart = useCallback(() => {
+  const validateStartRequirements = useCallback(() => {
     if (!validation.canStart) {
       if (validation.countError) {
         pushMessage({ type: "error", text: validation.countError });
@@ -146,6 +162,14 @@ function App() {
         pushMessage({ type: "error", text: "存在重复名称，请修改后再开始" });
       }
 
+      return false;
+    }
+
+    return true;
+  }, [pushMessage, validation]);
+
+  const handleStart = useCallback(() => {
+    if (!validateStartRequirements()) {
       return;
     }
 
@@ -154,7 +178,24 @@ function App() {
     setResultError(null);
     replaceResultPreview(null);
     setView("game");
-  }, [items, pushMessage, replaceResultPreview, startSession, validation]);
+  }, [items, replaceResultPreview, startSession, validateStartRequirements]);
+
+  const handleSetupModeChange = useCallback(
+    (nextMode: "play" | "edit") => {
+      if (nextMode === setupMode) {
+        return;
+      }
+
+      if (setupMode === "edit" && nextMode === "play") {
+        if (!validateStartRequirements()) {
+          return;
+        }
+      }
+
+      setSetupMode(nextMode);
+    },
+    [setupMode, validateStartRequirements],
+  );
 
   const handleBackFromGame = useCallback(() => {
     resetSession();
@@ -186,6 +227,22 @@ function App() {
     triggerDownload(resultBlob, `lets-guess-result-${Date.now()}.png`);
   }, [resultBlob]);
 
+  const handleImportFromFile = useCallback(
+    async (file: File | null) => {
+      if (!file) {
+        return;
+      }
+
+      try {
+        await importFromJsonString(await file.text());
+        setSetupMode("play");
+      } catch {
+        // 错误提示由 hook 内部统一处理
+      }
+    },
+    [importFromJsonString],
+  );
+
   return (
     <main
       id="app-container"
@@ -194,15 +251,17 @@ function App() {
       {view === "setup" ? (
         <SetupView
           items={itemsWithPreview}
+          setupMode={setupMode}
           isBusy={isBusy}
           message={message}
           onUpload={uploadImages}
-          onImport={importFromJson}
+          onImport={handleImportFromFile}
           onExport={exportToJson}
           onClear={clearAll}
           onNameChange={updateItemName}
           onRemove={removeItem}
           onStart={handleStart}
+          onSetupModeChange={handleSetupModeChange}
           onDismissMessage={clearMessage}
           buildExportJsonString={buildExportJsonString}
           onShareSuccess={(msg) => pushMessage({ type: "success", text: msg })}
@@ -215,6 +274,7 @@ function App() {
           presignedUrl={pendingShareUrl}
           onLoad={async (jsonText) => {
             await importFromJsonString(jsonText);
+            setSetupMode("play");
             setPendingShareUrl(null);
           }}
           onDismiss={() => setPendingShareUrl(null)}

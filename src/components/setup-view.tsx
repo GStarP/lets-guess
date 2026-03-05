@@ -8,6 +8,7 @@ import { ShareDialog } from "./share-dialog";
 
 type SetupViewProps = {
   items: DraftItemWithPreview[];
+  setupMode: "play" | "edit";
   isBusy: boolean;
   message: ToastMessage | null;
   onUpload: (files: File[]) => Promise<void>;
@@ -17,6 +18,7 @@ type SetupViewProps = {
   onNameChange: (id: string, value: string) => void;
   onRemove: (id: string) => Promise<void>;
   onStart: () => void;
+  onSetupModeChange: (nextMode: "play" | "edit") => void;
   onDismissMessage: () => void;
   onShareSuccess: (message: string) => void;
   onShareError: (message: string) => void;
@@ -85,6 +87,7 @@ function getToastStyle(message: ToastMessage): {
 
 export function SetupView({
   items,
+  setupMode,
   isBusy,
   message,
   onUpload,
@@ -94,6 +97,7 @@ export function SetupView({
   onNameChange,
   onRemove,
   onStart,
+  onSetupModeChange,
   onDismissMessage,
   onShareSuccess,
   onShareError,
@@ -118,6 +122,7 @@ export function SetupView({
     };
   }, [message, onDismissMessage]);
 
+  const isPlayMode = setupMode === "play";
   const canStart = !isBusy;
   const toastStyle = message ? getToastStyle(message) : null;
 
@@ -165,121 +170,178 @@ export function SetupView({
       <TopBar
         sticky
         leftSlot={
-          <IconButton
-            onClick={openUploadPicker}
-            disabled={isBusy}
-            label="上传图片"
-            className="-ml-2 hover:text-indigo-600"
-            icon={
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="h-5 w-5"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-            }
-          />
+          isPlayMode ? (
+            <div className="h-8 w-8" />
+          ) : (
+            <IconButton
+              onClick={openUploadPicker}
+              disabled={isBusy}
+              label="上传图片"
+              className="-ml-2 hover:text-indigo-600"
+              icon={
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="h-5 w-5"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              }
+            />
+          )
+        }
+        centerSlot={
+          <div className="inline-flex items-center gap-2 text-slate-500">
+            <button
+              type="button"
+              onClick={() => onSetupModeChange("play")}
+              className={`text-xs font-semibold transition-colors ${
+                isPlayMode
+                  ? "text-slate-900"
+                  : "text-slate-400 hover:text-slate-600"
+              }`}
+              aria-label="切换到游玩模式"
+            >
+              游玩
+            </button>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={!isPlayMode}
+              aria-label="切换游玩或编辑模式"
+              onClick={() => onSetupModeChange(isPlayMode ? "edit" : "play")}
+              className="relative h-7 w-12 rounded-lg bg-slate-300 p-0.5 transition-colors"
+            >
+              <span
+                className={`block h-6 w-6 rounded-md bg-white shadow-sm transition-transform ${
+                  isPlayMode ? "translate-x-0" : "translate-x-5"
+                }`}
+              />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onSetupModeChange("edit")}
+              className={`text-xs font-semibold transition-colors ${
+                !isPlayMode
+                  ? "text-slate-900"
+                  : "text-slate-400 hover:text-slate-600"
+              }`}
+              aria-label="切换到编辑模式"
+            >
+              编辑
+            </button>
+          </div>
         }
         rightSlot={
-          <IconButton
-            onClick={() => setMenuOpen(true)}
-            label="更多操作"
-            className="-mr-2 hover:text-indigo-600"
-            icon={
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="h-5 w-5"
-              >
-                <circle cx="12" cy="12" r="1" />
-                <circle cx="19" cy="12" r="1" />
-                <circle cx="5" cy="12" r="1" />
-              </svg>
-            }
-          />
+          isPlayMode ? (
+            <div className="h-8 w-8" />
+          ) : (
+            <IconButton
+              onClick={() => setMenuOpen(true)}
+              label="更多操作"
+              className="-mr-2 hover:text-indigo-600"
+              icon={
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="h-5 w-5"
+                >
+                  <circle cx="12" cy="12" r="1" />
+                  <circle cx="19" cy="12" r="1" />
+                  <circle cx="5" cy="12" r="1" />
+                </svg>
+              }
+            />
+          )
         }
       />
 
-      <div className="flex-1 space-y-4 overflow-y-auto p-4 pb-32">
-        <div className="grid grid-cols-2 gap-3">
-          {items.length === 0 ? (
-            <div className="col-span-full py-10 text-center text-sm text-slate-400">
-              暂无题目，请先上传图片
+      <div className="flex-1 overflow-y-auto p-4">
+        {isPlayMode ? (
+          <div className="flex min-h-full flex-col items-center justify-center px-6">
+            <div className="mb-4 text-xl font-semibold text-slate-800">
+              共 {items.length} 张图片
             </div>
-          ) : null}
+            <Button
+              onClick={onStart}
+              disabled={!canStart}
+              fullWidth
+              className="max-w-sm bg-black text-white hover:bg-slate-900"
+            >
+              <span>开始游戏</span>
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {items.length === 0 ? (
+              <div className="col-span-full py-10 text-center text-sm text-slate-400">
+                暂无题目，请先上传图片
+              </div>
+            ) : null}
 
-          {items.map((item) => {
-            return (
-              <div
-                key={item.id}
-                className="group flex flex-col gap-2 rounded-xl border border-slate-100 bg-white p-2 shadow-sm"
-              >
-                <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-slate-100">
-                  {item.previewUrl ? (
-                    <img
-                      src={item.previewUrl}
-                      alt="题目图片"
-                      className="h-full w-full object-cover"
+            {items.map((item) => {
+              return (
+                <div
+                  key={item.id}
+                  className="group flex flex-col gap-2 rounded-xl border border-slate-100 bg-white p-2 shadow-sm"
+                >
+                  <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-slate-100">
+                    {item.previewUrl ? (
+                      <img
+                        src={item.previewUrl}
+                        alt="题目图片"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
+                        图片不可用
+                      </div>
+                    )}
+
+                    <IconButton
+                      variant="surface"
+                      onClick={async () => {
+                        await onRemove(item.id);
+                      }}
+                      label="删除题目"
+                      className="absolute right-1 top-1 text-slate-400 hover:text-red-500"
+                      icon={
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          className="h-3.5 w-3.5"
+                        >
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      }
                     />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
-                      图片不可用
-                    </div>
-                  )}
+                  </div>
 
-                  <IconButton
-                    variant="surface"
-                    onClick={async () => {
-                      await onRemove(item.id);
-                    }}
-                    label="删除题目"
-                    className="absolute right-1 top-1 text-slate-400 hover:text-red-500"
-                    icon={
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        className="h-3.5 w-3.5"
-                      >
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
+                  <input
+                    type="text"
+                    value={item.correctName}
+                    onChange={(event) =>
+                      onNameChange(item.id, event.target.value)
                     }
+                    placeholder="输入正确名称"
+                    className="w-full border-none bg-transparent px-1 py-1 text-center text-sm font-semibold text-slate-800 placeholder:text-slate-300 outline-none"
                   />
                 </div>
-
-                <input
-                  type="text"
-                  value={item.correctName}
-                  onChange={(event) =>
-                    onNameChange(item.id, event.target.value)
-                  }
-                  placeholder="输入正确名称"
-                  className="w-full border-none bg-transparent px-1 py-1 text-center text-sm font-semibold text-slate-800 placeholder:text-slate-300 outline-none"
-                />
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-gray-50 via-gray-50 to-transparent p-6">
-        <Button
-          onClick={onStart}
-          disabled={!canStart}
-          fullWidth
-          className="bg-black text-white hover:bg-slate-900"
-        >
-          <span>开始游戏</span>
-        </Button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {menuOpen ? (

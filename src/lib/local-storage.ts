@@ -1,5 +1,7 @@
-import { LOCAL_STORAGE_KEY, R2_CREDENTIALS_KEY, SCHEMA_VERSION } from './constants'
+import { LOCAL_STORAGE_KEY, R2_CREDENTIALS_KEY, SCHEMA_VERSION, SETUP_MODE_KEY } from './constants'
 import type { PuzzleDraftDocument, PuzzleDraftItem, R2Credentials } from '../types'
+
+export type SetupMode = 'play' | 'edit'
 
 function isValidDraftItem(item: unknown): item is PuzzleDraftItem {
   if (!item || typeof item !== 'object') {
@@ -103,4 +105,17 @@ export function loadR2CredentialsFromLocalStorage(): R2Credentials | null {
 
 export function saveR2CredentialsToLocalStorage(credentials: R2Credentials): void {
   localStorage.setItem(R2_CREDENTIALS_KEY, JSON.stringify(credentials))
+}
+
+export function loadSetupModeFromLocalStorage(): SetupMode | null {
+  const raw = localStorage.getItem(SETUP_MODE_KEY)
+  if (raw === 'play' || raw === 'edit') {
+    return raw
+  }
+
+  return null
+}
+
+export function saveSetupModeToLocalStorage(mode: SetupMode): void {
+  localStorage.setItem(SETUP_MODE_KEY, mode)
 }
